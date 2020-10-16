@@ -2727,11 +2727,11 @@ int C_sco2_phx_air_cooler::off_design__calc_T_mc_in__target_T_htf_cold__max_powe
                 ms_cycle_od_par.m_T_mc_in = (*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_T_mc_in + 0.5;  //[K]
                 opt_P_LP_err = solve_P_LP_in__objective(od_opt_objective, P_LP_in_tracker_T_mc_in_sorted, od_tol);
                 if ((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_error_code != 0 ||
-                    std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) > T_htf_cold_diff_abs_min) {
+                    std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) > T_htf_cold_diff_abs_min + std::fmax(0.01,tol_W_dot_fan)) {
                     ms_cycle_od_par.m_T_mc_in -= 0.5;
                     return solve_P_LP_in__objective(od_opt_objective, P_LP_in_tracker_T_mc_in_sorted, od_tol);
                 }
-                else {
+                else if(std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) < T_htf_cold_diff_abs_min) {
                     T_htf_cold_diff_abs_min = std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold);
                 }
                 if (std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) < tol_W_dot_fan) {
