@@ -2113,7 +2113,7 @@ int C_sco2_phx_air_cooler::off_design__calc_T_pc_in__target_T_htf_cold__max_powe
                 v_T_mc_in_tracker__T_pc_in_sorted.push_back(*(v_P_LP_in__tracker_in.end() - 1));
 
                 if ((*(v_T_mc_in_tracker__T_pc_in_sorted.end() - 1)).m_error_code != 0 ||
-                    std::fabs((*(v_T_mc_in_tracker__T_pc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) > T_htf_cold_diff_abs_min) {
+                    std::fabs((*(v_T_mc_in_tracker__T_pc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) > T_htf_cold_diff_abs_min + std::fmax(0.01, tol_W_dot_pc_fan)) {
                     // If most recent T_pc_in guess resulted in error code or a greater absolute difference in T_htf_cold target, then revert and get out
                     T_pc_in -= 0.5;
                     v_P_LP_in__tracker_in.resize(0);
@@ -2130,7 +2130,7 @@ int C_sco2_phx_air_cooler::off_design__calc_T_pc_in__target_T_htf_cold__max_powe
 
                     return T_mc_in_err_code;
                 }
-                else
+                else if(std::fabs((*(v_T_mc_in_tracker__T_pc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) > T_htf_cold_diff_abs_min)
                 {   // Otherwise, set new minimum HTF cold temperature difference
                     T_htf_cold_diff_abs_min = std::fabs((*(v_T_mc_in_tracker__T_pc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold);    //[-]
                 }
@@ -2727,11 +2727,11 @@ int C_sco2_phx_air_cooler::off_design__calc_T_mc_in__target_T_htf_cold__max_powe
                 ms_cycle_od_par.m_T_mc_in = (*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_T_mc_in + 0.5;  //[K]
                 opt_P_LP_err = solve_P_LP_in__objective(od_opt_objective, P_LP_in_tracker_T_mc_in_sorted, od_tol);
                 if ((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_error_code != 0 ||
-                    std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) > T_htf_cold_diff_abs_min + std::fmax(0.01,tol_W_dot_fan)) {
+                    std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) > T_htf_cold_diff_abs_min + std::fmax(0.01, tol_W_dot_fan)) {
                     ms_cycle_od_par.m_T_mc_in -= 0.5;
                     return solve_P_LP_in__objective(od_opt_objective, P_LP_in_tracker_T_mc_in_sorted, od_tol);
                 }
-                else if(std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) < T_htf_cold_diff_abs_min) {
+                else if (std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) < T_htf_cold_diff_abs_min) {
                     T_htf_cold_diff_abs_min = std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold);
                 }
                 if (std::fabs((*(P_LP_in_tracker_T_mc_in_sorted.end() - 1)).m_rel_diff_T_htf_cold) < tol_W_dot_fan) {
@@ -2741,9 +2741,11 @@ int C_sco2_phx_air_cooler::off_design__calc_T_mc_in__target_T_htf_cold__max_powe
                 }
             }
         }
-        else if ((*it_sorted_rel_diff_T_htf_min).m_T_mc_in == get_od_solved()->ms_phx_od_solved.m_T_h_out){
+        // If the min HTF difference was not at the warmest inlet temp tried but at the *last inlet temp tried, then get out
+        else if ((*it_sorted_rel_diff_T_htf_min).m_T_mc_in = get_od_solved()->ms_rc_cycle_od_solved.m_temp[C_RecompCycle::MC_IN]){ 
             return 0;
         }
+        // Else, rerun simulation with inlet temp corresponding to min HTF temperature difference and get out
         else{
             ms_cycle_od_par.m_T_mc_in = (*it_sorted_rel_diff_T_htf_min).m_T_mc_in;  //[K]
             return solve_P_LP_in__objective(od_opt_objective, v_P_LP_in__tracker, od_tol);
