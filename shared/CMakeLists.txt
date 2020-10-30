@@ -3,6 +3,7 @@
 # Project Settings
 #
 #####################################################################################################################
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include_directories(. ../splinter)
 
@@ -20,8 +21,14 @@ set(SHARED_SRC
         lib_battery.h
         lib_battery_capacity.cpp
         lib_battery_capacity.h
-        lib_battery_dispatch.cpp
-        lib_battery_dispatch.h
+		lib_battery_dispatch.cpp
+		lib_battery_dispatch.h
+		lib_battery_dispatch_automatic_btm.cpp
+		lib_battery_dispatch_automatic_btm.h
+		lib_battery_dispatch_automatic_fom.cpp
+		lib_battery_dispatch_automatic_fom.h
+		lib_battery_dispatch_manual.cpp
+		lib_battery_dispatch_manual.h
         lib_battery_lifetime.cpp
         lib_battery_lifetime.h
         lib_battery_powerflow.cpp
@@ -83,6 +90,8 @@ set(SHARED_SRC
         lib_util.h
         lib_utility_rate.cpp
         lib_utility_rate.h
+		lib_utility_rate_equations.cpp
+        lib_utility_rate_equations.h
         lib_weatherfile.cpp
         lib_weatherfile.h
         lib_wind_obos.cpp
@@ -103,17 +112,6 @@ set(SHARED_SRC
 
 #####################################################################################################################
 #
-# Compile Options per Platform
-#
-#####################################################################################################################
-
-set_default_compile_options()
-set_no_warnings()
-set_disabled_warnings()
-
-
-#####################################################################################################################
-#
 # CMake Targets
 #
 #####################################################################################################################
@@ -125,6 +123,8 @@ set_target_properties(shared
         PREFIX ""
         )
 
+set_default_compile_options(shared)
+set_disabled_warnings(shared)
 
 #####################################################################################################################
 #
